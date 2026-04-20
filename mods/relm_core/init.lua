@@ -73,10 +73,11 @@ core.register_node(MOD .. ":water_flowing", {
 
 -- Mapgen alias table — tells the v7 generator which of our nodes to
 -- place where it would normally use "mapgen_stone" / "mapgen_dirt".
-core.register_alias("mapgen_stone",          MOD .. ":stone")
-core.register_alias("mapgen_dirt",           MOD .. ":dirt")
-core.register_alias("mapgen_dirt_with_grass", MOD .. ":grass")
-core.register_alias("mapgen_water_source",   MOD .. ":water_source")
+core.register_alias("mapgen_stone",              MOD .. ":stone")
+core.register_alias("mapgen_dirt",               MOD .. ":dirt")
+core.register_alias("mapgen_dirt_with_grass",    MOD .. ":grass")
+core.register_alias("mapgen_water_source",       MOD .. ":water_source")
+core.register_alias("mapgen_river_water_source", MOD .. ":water_source")
 
 core.register_on_newplayer(function(player)
     local inv = player:get_inventory()
