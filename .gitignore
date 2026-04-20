@@ -1,0 +1,14 @@
+# Backup files
+*.bak
+*.orig
+*~
+
+# Engine artifacts if someone drops this inside the engine tree
+worlds/
+debug.txt
+screenshot_*.png
+
+# Secrets
+.env
+.env.*
+!.env.example
