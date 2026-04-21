@@ -90,4 +90,61 @@ end)
 
 core.register_on_shutdown(flush)
 
+-- ───────── energy display + low-energy warning ─────────
+-- Players need to know when they hit zero so they can refill (or wait
+-- for regen). Cache the last known energy per player so we only chat-
+-- spam when crossing the zero threshold.
+
+local last_energy = {}
+
+local function fetch_energy(name, cb)
+    http.fetch({
+        url = BACKEND_URL .. "/api/energy/" .. name,
+        method = "GET",
+        timeout = 8,
+    }, function(res)
+        if res.code ~= 200 then return end
+        local body = core.parse_json(res.data)
+        if body and body.current ~= nil then cb(body) end
+    end)
+end
+
+core.register_chatcommand("energy", {
+    description = "Show your current Relm energy (caps RELM rewards).",
+    func = function(name)
+        fetch_energy(name, function(e)
+            core.chat_send_player(name, string.format(
+                "[Relm] Energy: %d / %d (regen %d/min). Refill: %s/refill?player=%s",
+                e.current, e.max, e.regenPerMin,
+                BACKEND_URL:gsub("relm%-server", "relm-link"), name
+            ))
+        end)
+        return true, "Checking energy …"
+    end,
+})
+
+-- Sample energy after each batch flush; if it's freshly zero, warn the
+-- player. Keeps the backend hits to ~1 per active player per 5s.
+local function sample_energy()
+    for _, player in ipairs(core.get_connected_players()) do
+        local name = player:get_player_name()
+        fetch_energy(name, function(e)
+            local prev = last_energy[name]
+            last_energy[name] = e.current
+            if (prev == nil or prev > 0) and e.current == 0 then
+                core.chat_send_player(name,
+                    "[Relm] Out of energy — actions will count but earn 0 RELM until you refill or wait. /energy")
+            end
+        end)
+    end
+end
+
+local sample_timer = 0
+core.register_globalstep(function(dt)
+    sample_timer = sample_timer + dt
+    if sample_timer < 6 then return end
+    sample_timer = 0
+    sample_energy()
+end)
+
 core.log("action", "[" .. MOD .. "] loaded, backend = " .. BACKEND_URL)
